@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Orçamento</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 16px; }
+        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; }
+        .btn-primary { background-color: #2563eb; color: white; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+        .badge-receita { background-color: #dcfce7; color: #166534; }
+        .badge-despesa { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body class="p-4 max-w-md mx-auto">
+    <header class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Meu Orçamento</h1>
+        <select id="mes-selector" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium">
+            <option value="AGOSTO">Agosto</option>
+            <option value="SETEMBRO">Setembro</option>
+        </select>
+    </header>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="card p-3 text-center"><p class="text-xs text-gray-500 uppercase font-bold">Receitas</p><p id="resumo-receitas" class="text-sm font-bold text-green-600">R$ 0,00</p></div>
+        <div class="card p-3 text-center"><p class="text-xs text-gray-500 uppercase font-bold">Despesas</p><p id="resumo-despesas" class="text-sm font-bold text-red-600">R$ 0,00</p></div>
+        <div class="card p-3 text-center"><p class="text-xs text-gray-500 uppercase font-bold">Saldo</p><p id="resumo-saldo" class="text-sm font-bold text-blue-600">R$ 0,00</p></div>
+    </div>
+    <button onclick="openModal()" class="btn btn-primary w-full mb-6 flex items-center justify-center gap-2"><span>+ Adicionar Transação</span></button>
+    <div id="transacoes-list" class="space-y-3"></div>
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl w-full max-w-sm p-6">
+            <h2 class="text-xl font-bold mb-4">Nova Transação</h2>
+            <div class="space-y-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label><input id="input-categoria" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label><input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label><select id="input-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="DESPESA">Despesa</option><option value="RECEITA">Receita</option></select></div>
+                <div class="flex gap-3 mt-6"><button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button><button onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_URL = 'https://controle-financeiro-backend-wbo4.onrender.com';
+        let currentMes = 'AGOSTO';
+        async function loadData() {
+            try {
+                const [resumoRes, transacoesRes] = await Promise.all([fetch(`${API_URL}/api/resumo/${currentMes}`), fetch(`${API_URL}/api/transacoes?mes=${currentMes}`)]);
+                const resumo = await resumoRes.json(); const transacoes = await transacoesRes.json();
+                document.getElementById('resumo-receitas').innerText = `R$ ${resumo.receitas.toFixed(2)}`;
+                document.getElementById('resumo-despesas').innerText = `R$ ${resumo.despesas.toFixed(2)}`;
+                document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
+                const list = document.getElementById('transacoes-list');
+                list.innerHTML = transacoes.map(t => `
+                    <div class="card flex justify-between items-center">
+                        <div><p class="font-bold text-gray-900">${t.categoria}</p><p class="text-xs text-gray-500">${t.status}</p></div>
+                        <div class="text-right"><p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p><span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span></div>
+                    </div>`).join('');
+            } catch (e) { console.error(e); }
+        }
+        function openModal() { document.getElementById('modal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+        async function salvarTransacao() {
+            const categoria = document.getElementById('input-categoria').value;
+            const valor = parseFloat(document.getElementById('input-valor').value);
+            const tipo = document.getElementById('input-tipo').value;
+            if (!categoria || isNaN(valor)) return alert('Preencha tudo!');
+            await fetch(`${API_URL}/api/transacoes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ categoria, valor, tipo, mes: currentMes }) });
+            closeModal(); loadData();
+        }
+        document.getElementById('mes-selector').addEventListener('change', (e) => { currentMes = e.target.value; loadData(); });
+        loadData();
+    </script>
+</body>
+</html>
