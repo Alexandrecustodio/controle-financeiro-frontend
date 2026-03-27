@@ -9,12 +9,15 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
         .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 16px; }
-        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; }
+        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; }
         .btn-primary { background-color: #2563eb; color: white; }
         .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-danger { background-color: #ef4444; color: white; padding: 4px 8px; font-size: 12px; }
+        .btn-danger:hover { background-color: #dc2626; }
         .badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
         .badge-receita { background-color: #dcfce7; color: #166534; }
         .badge-despesa { background-color: #fee2e2; color: #991b1b; }
+        select, input { font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto">
@@ -46,9 +49,33 @@
         <div class="bg-white rounded-xl w-full max-w-sm p-6">
             <h2 class="text-xl font-bold mb-4">Nova Transação</h2>
             <div class="space-y-4">
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label><input id="input-categoria" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label><input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label><select id="input-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="DESPESA">Despesa</option><option value="RECEITA">Receita</option></select></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <select id="input-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="DESPESA">Despesa</option>
+                        <option value="RECEITA">Receita</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                    <select id="input-categoria" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="">Selecione uma categoria</option>
+                        <option value="Tributos Igreja">Tributos Igreja</option>
+                        <option value="Aluguel">Aluguel</option>
+                        <option value="Plano de Saúde">Plano de Saúde</option>
+                        <option value="Contas">Contas</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Pagamento Amor">Pagamento Amor</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Empréstimo">Empréstimo</option>
+                        <option value="Viagens">Viagens</option>
+                        <option value="Outros Gastos">Outros Gastos</option>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Investimentos">Investimentos</option>
+                        <option value="Carro">Carro</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label><input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00"></div>
                 <div class="flex gap-3 mt-6"><button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button><button onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button></div>
             </div>
         </div>
@@ -56,10 +83,20 @@
     <script>
         const API_URL = 'https://controle-financeiro-backend-wbo4.onrender.com';
         let currentMes = 'AGOSTO';
+        
+        function obterMesAtual() {
+            const meses = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+            return meses[new Date().getMonth()];
+        }
+        
         async function loadData() {
             try {
-                const [resumoRes, transacoesRes] = await Promise.all([fetch(`${API_URL}/api/resumo/${currentMes}`), fetch(`${API_URL}/api/transacoes?mes=${currentMes}`)]);
-                const resumo = await resumoRes.json(); const transacoes = await transacoesRes.json();
+                const [resumoRes, transacoesRes] = await Promise.all([
+                    fetch(`${API_URL}/api/resumo/${currentMes}`),
+                    fetch(`${API_URL}/api/transacoes?mes=${currentMes}`)
+                ]);
+                const resumo = await resumoRes.json();
+                const transacoes = await transacoesRes.json();
                 document.getElementById('resumo-receitas').innerText = `R$ ${resumo.receitas.toFixed(2)}`;
                 document.getElementById('resumo-despesas').innerText = `R$ ${resumo.despesas.toFixed(2)}`;
                 document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
@@ -67,21 +104,52 @@
                 list.innerHTML = transacoes.map(t => `
                     <div class="card flex justify-between items-center">
                         <div><p class="font-bold text-gray-900">${t.categoria}</p><p class="text-xs text-gray-500">${t.status}</p></div>
-                        <div class="text-right"><p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p><span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span></div>
+                        <div class="text-right">
+                            <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
+                            <div class="flex gap-2 justify-end mt-1">
+                                <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
+                                <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
+                            </div>
+                        </div>
                     </div>`).join('');
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error('Erro ao carregar dados:', e); }
         }
+        
         function openModal() { document.getElementById('modal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+        function closeModal() { 
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('input-categoria').value = '';
+            document.getElementById('input-valor').value = '';
+            document.getElementById('input-tipo').value = 'DESPESA';
+        }
+        
         async function salvarTransacao() {
             const categoria = document.getElementById('input-categoria').value;
             const valor = parseFloat(document.getElementById('input-valor').value);
             const tipo = document.getElementById('input-tipo').value;
-            if (!categoria || isNaN(valor)) return alert('Preencha tudo!');
-            await fetch(`${API_URL}/api/transacoes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ categoria, valor, tipo, mes: currentMes }) });
-            closeModal(); loadData();
+            if (!categoria || isNaN(valor) || valor <= 0) return alert('Preencha todos os campos corretamente!');
+            try {
+                await fetch(`${API_URL}/api/transacoes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categoria, valor, tipo, mes: currentMes })
+                });
+                closeModal();
+                loadData();
+            } catch (e) { console.error('Erro ao salvar:', e); alert('Erro ao salvar transação'); }
         }
+        
+        async function deletarTransacao(id) {
+            if (!confirm('Tem certeza que deseja deletar?')) return;
+            try {
+                await fetch(`${API_URL}/api/transacoes/${id}`, { method: 'DELETE' });
+                loadData();
+            } catch (e) { console.error('Erro ao deletar:', e); alert('Erro ao deletar transação'); }
+        }
+        
         document.getElementById('mes-selector').addEventListener('change', (e) => { currentMes = e.target.value; loadData(); });
+        currentMes = obterMesAtual();
+        document.getElementById('mes-selector').value = currentMes;
         loadData();
     </script>
 </body>
