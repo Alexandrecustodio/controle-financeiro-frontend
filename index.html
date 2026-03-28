@@ -3,61 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Orçamento</title>
+    <title>Meu Orçamento - Controle Financeiro</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 16px; margin-bottom: 16px; }
-        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; }
-        .btn-primary { background-color: #2563eb; color: white; }
-        .btn-primary:hover { background-color: #1d4ed8; }
-        .btn-danger { background-color: #ef4444; color: white; padding: 4px 8px; font-size: 12px; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; }
+        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; }
+        .btn-primary { background-color: #667eea; color: white; }
+        .btn-primary:hover { background-color: #5568d3; }
+        .btn-danger { background-color: #ef4444; color: white; padding: 6px 10px; font-size: 12px; }
         .btn-danger:hover { background-color: #dc2626; }
         .badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
         .badge-receita { background-color: #dcfce7; color: #166534; }
         .badge-despesa { background-color: #fee2e2; color: #991b1b; }
+        .stat-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 24px; font-weight: 700; margin: 10px 0; }
+        .stat-label { font-size: 12px; color: #6b7280; text-transform: uppercase; }
+        .tab-button { padding: 10px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #9ca3af; transition: all 0.2s; }
+        .tab-button.active { color: #667eea; border-bottom: 3px solid #667eea; }
         select, input { font-family: 'Inter', sans-serif; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; }
+        .chart-container { position: relative; height: 300px; margin-bottom: 20px; }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto">
-    <header class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Meu Orçamento</h1>
-        <select id="mes-selector" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium">
-            <option value="JANEIRO">Janeiro</option>
-            <option value="FEVEREIRO">Fevereiro</option>
-            <option value="MARCO">Março</option>
-            <option value="ABRIL">Abril</option>
-            <option value="MAIO">Maio</option>
-            <option value="JUNHO">Junho</option>
-            <option value="JULHO">Julho</option>
-            <option value="AGOSTO">Agosto</option>
-            <option value="SETEMBRO">Setembro</option>
-            <option value="OUTUBRO">Outubro</option>
-            <option value="NOVEMBRO">Novembro</option>
-            <option value="DEZEMBRO">Dezembro</option>
-        </select>
-    </header>
-    <div class="grid grid-cols-3 gap-3 mb-6">
-        <div class="card p-3 text-center"><p class="text-xs text-gray-500 uppercase font-bold">Receitas</p><p id="resumo-receitas" class="text-sm font-bold text-green-600">R$ 0,00</p></div>
-        <div class="card p-3 text-center"><p class="text-xs text-gray-500 uppercase font-bold">Despesas</p><p id="resumo-despesas" class="text-sm font-bold text-red-600">R$ 0,00</p></div>
-        <div class="card p-3 text-center"><p class="text-xs text-gray-500 uppercase font-bold">Saldo</p><p id="resumo-saldo" class="text-sm font-bold text-blue-600">R$ 0,00</p></div>
+<body class="p-4">
+    <div class="container">
+        <!-- Header -->
+        <div class="card-header mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">Meu Orçamento</h1>
+                    <p class="text-blue-100 mt-2">Controle seus gastos com inteligência</p>
+                </div>
+                <select id="mes-selector" class="bg-white text-gray-900 rounded-lg px-4 py-2 font-medium">
+                    <option value="JANEIRO">Janeiro</option>
+                    <option value="FEVEREIRO">Fevereiro</option>
+                    <option value="MARCO">Março</option>
+                    <option value="ABRIL">Abril</option>
+                    <option value="MAIO">Maio</option>
+                    <option value="JUNHO">Junho</option>
+                    <option value="JULHO">Julho</option>
+                    <option value="AGOSTO">Agosto</option>
+                    <option value="SETEMBRO">Setembro</option>
+                    <option value="OUTUBRO">Outubro</option>
+                    <option value="NOVEMBRO">Novembro</option>
+                    <option value="DEZEMBRO">Dezembro</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="stat-card">
+                <p class="stat-label">Receitas</p>
+                <p class="stat-value text-green-600" id="resumo-receitas">R$ 0,00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Despesas</p>
+                <p class="stat-value text-red-600" id="resumo-despesas">R$ 0,00</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Saldo</p>
+                <p class="stat-value text-blue-600" id="resumo-saldo">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card mb-6">
+            <div class="flex border-b">
+                <button class="tab-button active" onclick="switchTab('transacoes')">Transações</button>
+                <button class="tab-button" onclick="switchTab('graficos')">Gráficos</button>
+            </div>
+
+            <!-- Tab: Transações -->
+            <div id="tab-transacoes" class="tab-content">
+                <div class="mt-6">
+                    <button onclick="openModal()" class="btn btn-primary w-full mb-6">+ Adicionar Transação</button>
+                    <div id="transacoes-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Gráficos -->
+            <div id="tab-graficos" class="tab-content hidden">
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold mb-4">Receitas vs Despesas</h3>
+                    <div class="chart-container">
+                        <canvas id="chartReceitasDespesas"></canvas>
+                    </div>
+
+                    <h3 class="text-lg font-bold mb-4 mt-8">Gastos por Categoria</h3>
+                    <div class="chart-container">
+                        <canvas id="chartCategorias"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <button onclick="openModal()" class="btn btn-primary w-full mb-6 flex items-center justify-center gap-2"><span>+ Adicionar Transação</span></button>
-    <div id="transacoes-list" class="space-y-3"></div>
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl w-full max-w-sm p-6">
-            <h2 class="text-xl font-bold mb-4">Nova Transação</h2>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6">Nova Transação</h2>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                     <select id="input-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2">
                         <option value="DESPESA">Despesa</option>
                         <option value="RECEITA">Receita</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
                     <select id="input-categoria" class="w-full border border-gray-300 rounded-lg px-3 py-2">
                         <option value="">Selecione uma categoria</option>
                         <option value="Tributos Igreja">Tributos Igreja</option>
@@ -75,20 +137,29 @@
                         <option value="Carro">Carro</option>
                     </select>
                 </div>
-                <div><label class="block text-sm font-medium text-gray-700 mb-1">Valor (R$)</label><input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00"></div>
-                <div class="flex gap-3 mt-6"><button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button><button onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
+                    <input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
+                    <button onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
         const API_URL = 'https://controle-financeiro-backend-wbo4.onrender.com';
         let currentMes = 'AGOSTO';
-        
+        let chartReceitasDespesas = null;
+        let chartCategorias = null;
+
         function obterMesAtual() {
             const meses = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
             return meses[new Date().getMonth()];
         }
-        
+
         async function loadData() {
             try {
                 const [resumoRes, transacoesRes] = await Promise.all([
@@ -97,13 +168,18 @@
                 ]);
                 const resumo = await resumoRes.json();
                 const transacoes = await transacoesRes.json();
+
                 document.getElementById('resumo-receitas').innerText = `R$ ${resumo.receitas.toFixed(2)}`;
                 document.getElementById('resumo-despesas').innerText = `R$ ${resumo.despesas.toFixed(2)}`;
                 document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
+
                 const list = document.getElementById('transacoes-list');
                 list.innerHTML = transacoes.map(t => `
                     <div class="card flex justify-between items-center">
-                        <div><p class="font-bold text-gray-900">${t.categoria}</p><p class="text-xs text-gray-500">${t.status}</p></div>
+                        <div>
+                            <p class="font-bold text-gray-900">${t.categoria}</p>
+                            <p class="text-xs text-gray-500">${t.status}</p>
+                        </div>
                         <div class="text-right">
                             <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
                             <div class="flex gap-2 justify-end mt-1">
@@ -112,22 +188,99 @@
                             </div>
                         </div>
                     </div>`).join('');
-            } catch (e) { console.error('Erro ao carregar dados:', e); }
+
+                atualizarGraficos(transacoes, resumo);
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+            }
         }
-        
-        function openModal() { document.getElementById('modal').classList.remove('hidden'); }
-        function closeModal() { 
-            document.getElementById('modal').classList.add('hidden');
+
+        function atualizarGraficos(transacoes, resumo) {
+            // Gráfico Receitas vs Despesas
+            const ctxReceitas = document.getElementById('chartReceitasDespesas').getContext('2d');
+            if (chartReceitasDespesas) chartReceitasDespesas.destroy();
+            chartReceitasDespesas = new Chart(ctxReceitas, {
+                type: 'bar',
+                data: {
+                    labels: ['Receitas', 'Despesas'],
+                    datasets: [{
+                        label: 'Valores (R$)',
+                        data: [resumo.receitas, resumo.despesas],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Gráfico Gastos por Categoria
+            const categorias = {};
+            transacoes.filter(t => t.tipo === 'DESPESA').forEach(t => {
+                categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor;
+            });
+
+            const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
+            if (chartCategorias) chartCategorias.destroy();
+            chartCategorias = new Chart(ctxCategorias, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categorias),
+                    datasets: [{
+                        data: Object.values(categorias),
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe',
+                            '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#330867',
+                            '#a8edea', '#fed6e3'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            
+            if (tab === 'transacoes') {
+                document.getElementById('tab-transacoes').classList.remove('hidden');
+                document.querySelectorAll('.tab-button')[0].classList.add('active');
+            } else {
+                document.getElementById('tab-graficos').classList.remove('hidden');
+                document.querySelectorAll('.tab-button')[1].classList.add('active');
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
             document.getElementById('input-categoria').value = '';
             document.getElementById('input-valor').value = '';
             document.getElementById('input-tipo').value = 'DESPESA';
         }
-        
+
         async function salvarTransacao() {
             const categoria = document.getElementById('input-categoria').value;
             const valor = parseFloat(document.getElementById('input-valor').value);
             const tipo = document.getElementById('input-tipo').value;
-            if (!categoria || isNaN(valor) || valor <= 0) return alert('Preencha todos os campos corretamente!');
+
+            if (!categoria || isNaN(valor) || valor <= 0) {
+                alert('Preencha todos os campos corretamente!');
+                return;
+            }
+
             try {
                 await fetch(`${API_URL}/api/transacoes`, {
                     method: 'POST',
@@ -136,18 +289,34 @@
                 });
                 closeModal();
                 loadData();
-            } catch (e) { console.error('Erro ao salvar:', e); alert('Erro ao salvar transação'); }
+            } catch (e) {
+                console.error('Erro ao salvar:', e);
+                alert('Erro ao salvar transação');
+            }
         }
-        
+
         async function deletarTransacao(id) {
             if (!confirm('Tem certeza que deseja deletar?')) return;
             try {
                 await fetch(`${API_URL}/api/transacoes/${id}`, { method: 'DELETE' });
                 loadData();
-            } catch (e) { console.error('Erro ao deletar:', e); alert('Erro ao deletar transação'); }
+            } catch (e) {
+                console.error('Erro ao deletar:', e);
+                alert('Erro ao deletar transação');
+            }
         }
-        
-        document.getElementById('mes-selector').addEventListener('change', (e) => { currentMes = e.target.value; loadData(); });
+
+        document.getElementById('mes-selector').addEventListener('change', (e) => {
+            currentMes = e.target.value;
+            loadData();
+        });
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+
+        // Inicializar
         currentMes = obterMesAtual();
         document.getElementById('mes-selector').value = currentMes;
         loadData();
