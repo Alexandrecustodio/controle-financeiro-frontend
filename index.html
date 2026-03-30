@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Orçamento - Controle Financeiro</title>
+    <title>Meu Orçamento - Controle Financeiro Completo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; }
         .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; }
@@ -18,6 +18,8 @@
         .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-danger { background-color: #ef4444; color: white; padding: 6px 10px; font-size: 12px; }
         .btn-danger:hover { background-color: #dc2626; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
         .badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
         .badge-receita { background-color: #dcfce7; color: #166534; }
         .badge-despesa { background-color: #fee2e2; color: #991b1b; }
@@ -29,42 +31,49 @@
         select, input { font-family: 'Inter', sans-serif; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; }
+        .modal-content { background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
         .chart-container { position: relative; height: 300px; margin-bottom: 20px; }
-        .loading { display: none; color: #667eea; font-weight: 600; margin-top: 10px; }
-        .loading.active { display: block; }
-        .error { color: #ef4444; font-size: 12px; margin-top: 5px; }
-        .success { color: #10b981; font-size: 12px; margin-top: 5px; }
+        .progress-bar { background-color: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden; }
+        .progress-fill { background-color: #667eea; height: 100%; transition: width 0.3s; }
+        .header-controls { display: flex; gap: 10px; flex-wrap: wrap; }
     </style>
 </head>
 <body class="p-4">
     <div class="container">
         <!-- Header -->
         <div class="card-header mb-6">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center flex-wrap gap-4">
                 <div>
                     <h1 class="text-3xl font-bold">Meu Orçamento</h1>
-                    <p class="text-blue-100 mt-2">Controle seus gastos com inteligência</p>
+                    <p class="text-blue-100 mt-2">Controle completo de finanças, investimentos e metas</p>
                 </div>
-                <select id="mes-selector" class="bg-white text-gray-900 rounded-lg px-4 py-2 font-medium">
-                    <option value="JANEIRO">Janeiro</option>
-                    <option value="FEVEREIRO">Fevereiro</option>
-                    <option value="MARCO">Março</option>
-                    <option value="ABRIL">Abril</option>
-                    <option value="MAIO">Maio</option>
-                    <option value="JUNHO">Junho</option>
-                    <option value="JULHO">Julho</option>
-                    <option value="AGOSTO">Agosto</option>
-                    <option value="SETEMBRO">Setembro</option>
-                    <option value="OUTUBRO">Outubro</option>
-                    <option value="NOVEMBRO">Novembro</option>
-                    <option value="DEZEMBRO">Dezembro</option>
-                </select>
+                <div class="header-controls">
+                    <select id="ano-selector" class="bg-white text-gray-900 rounded-lg px-4 py-2 font-medium">
+                        <option value="2024">2024</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                    </select>
+                    <select id="mes-selector" class="bg-white text-gray-900 rounded-lg px-4 py-2 font-medium">
+                        <option value="JANEIRO">Janeiro</option>
+                        <option value="FEVEREIRO">Fevereiro</option>
+                        <option value="MARCO">Março</option>
+                        <option value="ABRIL">Abril</option>
+                        <option value="MAIO">Maio</option>
+                        <option value="JUNHO">Junho</option>
+                        <option value="JULHO">Julho</option>
+                        <option value="AGOSTO">Agosto</option>
+                        <option value="SETEMBRO">Setembro</option>
+                        <option value="OUTUBRO">Outubro</option>
+                        <option value="NOVEMBRO">Novembro</option>
+                        <option value="DEZEMBRO">Dezembro</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <!-- Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div class="stat-card">
                 <p class="stat-label">Receitas</p>
                 <p class="stat-value text-green-600" id="resumo-receitas">R$ 0,00</p>
@@ -77,20 +86,63 @@
                 <p class="stat-label">Saldo</p>
                 <p class="stat-value text-blue-600" id="resumo-saldo">R$ 0,00</p>
             </div>
+            <div class="stat-card">
+                <p class="stat-label">Patrimônio</p>
+                <p class="stat-value text-purple-600" id="patrimonio-total">R$ 0,00</p>
+            </div>
         </div>
 
         <!-- Tabs -->
         <div class="card mb-6">
-            <div class="flex border-b">
+            <div class="flex border-b overflow-x-auto">
                 <button class="tab-button active" onclick="switchTab('transacoes')">Transações</button>
+                <button class="tab-button" onclick="switchTab('investimentos')">Investimentos</button>
+                <button class="tab-button" onclick="switchTab('metas')">Metas</button>
                 <button class="tab-button" onclick="switchTab('graficos')">Gráficos</button>
             </div>
 
             <!-- Tab: Transações -->
             <div id="tab-transacoes" class="tab-content">
                 <div class="mt-6">
-                    <button onclick="openModal()" class="btn btn-primary w-full mb-6">+ Adicionar Transação</button>
+                    <button onclick="openModal('transacao')" class="btn btn-primary w-full mb-6">+ Adicionar Transação</button>
                     <div id="transacoes-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Investimentos -->
+            <div id="tab-investimentos" class="tab-content hidden">
+                <div class="mt-6">
+                    <button onclick="openModal('investimento')" class="btn btn-primary w-full mb-6">+ Novo Investimento</button>
+                    <div id="investimentos-list" class="space-y-3"></div>
+                    <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-bold mb-4">Resumo de Investimentos</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600">Total Investido</p>
+                                <p class="text-xl font-bold text-blue-600" id="total-investido">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Valor Atual</p>
+                                <p class="text-xl font-bold text-green-600" id="valor-atual-inv">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Ganho/Perda</p>
+                                <p class="text-xl font-bold text-purple-600" id="ganho-perda">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Rentabilidade</p>
+                                <p class="text-xl font-bold text-orange-600" id="rentabilidade">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Metas -->
+            <div id="tab-metas" class="tab-content hidden">
+                <div class="mt-6">
+                    <button onclick="openModal('meta')" class="btn btn-primary w-full mb-6">+ Nova Meta</button>
+                    <div id="metas-list" class="space-y-4"></div>
                 </div>
             </div>
 
@@ -111,8 +163,8 @@
         </div>
     </div>
 
-    <!-- Modal -->
-    <div id="modal" class="modal">
+    <!-- Modal Transação -->
+    <div id="modal-transacao" class="modal">
         <div class="modal-content">
             <h2 class="text-2xl font-bold mb-6">Nova Transação</h2>
             <div class="space-y-4">
@@ -152,7 +204,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
                     <input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
                 </div>
-                <div id="modal-message" class="loading"></div>
+                <div id="modal-message" class="text-sm"></div>
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
                     <button id="btn-salvar" onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button>
@@ -161,12 +213,71 @@
         </div>
     </div>
 
+    <!-- Modal Investimento -->
+    <div id="modal-investimento" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6">Novo Investimento</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Investimento</label>
+                    <input id="input-inv-nome" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Ex: ITUB4, Fundo XYZ">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <select id="input-inv-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="Ação">Ação</option>
+                        <option value="Fundo">Fundo</option>
+                        <option value="Cripto">Cripto</option>
+                        <option value="Tesouro">Tesouro</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Valor Inicial (R$)</label>
+                    <input id="input-inv-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
+                </div>
+                <div id="modal-message-inv" class="text-sm"></div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
+                    <button onclick="salvarInvestimento()" class="btn btn-primary flex-1">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Meta -->
+    <div id="modal-meta" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-6">Nova Meta</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Meta</label>
+                    <input id="input-meta-nome" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Ex: Viagem, Carro">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                    <input id="input-meta-desc" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Opcional">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Valor Alvo (R$)</label>
+                    <input id="input-meta-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
+                </div>
+                <div id="modal-message-meta" class="text-sm"></div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
+                    <button onclick="salvarMeta()" class="btn btn-primary flex-1">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'https://controle-financeiro-backend-wbo4.onrender.com';
+        let currentAno = new Date().getFullYear();
         let currentMes = 'AGOSTO';
         let chartReceitasDespesas = null;
         let chartCategorias = null;
-        let isSaving = false;
+        let modalAtivo = null;
 
         function obterMesAtual() {
             const meses = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
@@ -175,51 +286,148 @@
 
         async function loadData() {
             try {
-                const [resumoRes, transacoesRes] = await Promise.all([
-                    fetch(`${API_URL}/api/resumo/${currentMes}`),
-                    fetch(`${API_URL}/api/transacoes?mes=${currentMes}`)
+                const [resumoRes, transacoesRes, investimentosRes, metasRes] = await Promise.all([
+                    fetch(`${API_URL}/api/resumo/${currentAno}/${currentMes}`),
+                    fetch(`${API_URL}/api/transacoes?ano=${currentAno}&mes=${currentMes}`),
+                    fetch(`${API_URL}/api/investimentos?ano=${currentAno}`),
+                    fetch(`${API_URL}/api/metas?ano=${currentAno}`)
                 ]);
                 
-                if (!resumoRes.ok || !transacoesRes.ok) {
-                    throw new Error('Erro ao carregar dados do servidor');
+                if (resumoRes.ok) {
+                    const resumo = await resumoRes.json();
+                    document.getElementById('resumo-receitas').innerText = `R$ ${resumo.receitas.toFixed(2)}`;
+                    document.getElementById('resumo-despesas').innerText = `R$ ${resumo.despesas.toFixed(2)}`;
+                    document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
                 }
-                
-                const resumo = await resumoRes.json();
-                const transacoes = await transacoesRes.json();
 
-                document.getElementById('resumo-receitas').innerText = `R$ ${resumo.receitas.toFixed(2)}`;
-                document.getElementById('resumo-despesas').innerText = `R$ ${resumo.despesas.toFixed(2)}`;
-                document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
-
-                const list = document.getElementById('transacoes-list');
-                if (transacoes.length === 0) {
-                    list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma transação registrada neste mês.</p>';
-                } else {
-                    list.innerHTML = transacoes.map(t => `
-                        <div class="card flex justify-between items-center">
-                            <div>
-                                <p class="font-bold text-gray-900">${t.categoria}</p>
-                                <p class="text-xs text-gray-500">${t.status || 'Sem data'}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
-                                <div class="flex gap-2 justify-end mt-1">
-                                    <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
-                                    <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
+                if (transacoesRes.ok) {
+                    const transacoes = await transacoesRes.json();
+                    const list = document.getElementById('transacoes-list');
+                    if (transacoes.length === 0) {
+                        list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma transação registrada.</p>';
+                    } else {
+                        list.innerHTML = transacoes.map(t => `
+                            <div class="card flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold text-gray-900">${t.categoria}</p>
+                                    <p class="text-xs text-gray-500">${t.status}</p>
                                 </div>
-                            </div>
-                        </div>`).join('');
+                                <div class="text-right">
+                                    <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
+                                    <div class="flex gap-2 justify-end mt-1">
+                                        <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
+                                        <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>`).join('');
+                    }
+                    atualizarGraficos(transacoes, resumo);
                 }
 
-                atualizarGraficos(transacoes, resumo);
+                if (investimentosRes.ok) {
+                    const investimentos = await investimentosRes.json();
+                    loadInvestimentos(investimentos);
+                }
+
+                if (metasRes.ok) {
+                    const metas = await metasRes.json();
+                    loadMetas(metas);
+                }
             } catch (e) {
                 console.error('Erro ao carregar dados:', e);
-                document.getElementById('transacoes-list').innerHTML = '<p class="text-red-500 text-center py-8">Erro ao carregar dados. Verifique sua conexão.</p>';
+            }
+        }
+
+        function loadInvestimentos(investimentos) {
+            const list = document.getElementById('investimentos-list');
+            if (investimentos.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum investimento registrado.</p>';
+            } else {
+                list.innerHTML = investimentos.map(i => `
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <p class="font-bold text-gray-900">${i.nome}</p>
+                                <p class="text-xs text-gray-500">${i.tipo}</p>
+                            </div>
+                            <button onclick="deletarInvestimento(${i.id})" class="btn btn-danger">🗑️</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Valor Inicial</p>
+                                <p class="font-bold">R$ ${i.valor_inicial.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Valor Atual</p>
+                                <p class="font-bold">R$ ${i.valor_atual.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Ganho/Perda</p>
+                                <p class="font-bold ${i.ganho >= 0 ? 'text-green-600' : 'text-red-600'}">R$ ${i.ganho.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Rentabilidade</p>
+                                <p class="font-bold ${i.rentabilidade >= 0 ? 'text-green-600' : 'text-red-600'}">${i.rentabilidade.toFixed(2)}%</p>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            // Atualizar resumo
+            const totalInvestido = investimentos.reduce((sum, i) => sum + i.valor_inicial, 0);
+            const valorAtual = investimentos.reduce((sum, i) => sum + i.valor_atual, 0);
+            const ganhoPerd = valorAtual - totalInvestido;
+            const rentabilidade = totalInvestido > 0 ? (ganhoPerd / totalInvestido * 100) : 0;
+
+            document.getElementById('total-investido').innerText = `R$ ${totalInvestido.toFixed(2)}`;
+            document.getElementById('valor-atual-inv').innerText = `R$ ${valorAtual.toFixed(2)}`;
+            document.getElementById('ganho-perda').innerText = `R$ ${ganhoPerd.toFixed(2)}`;
+            document.getElementById('rentabilidade').innerText = `${rentabilidade.toFixed(2)}%`;
+            document.getElementById('patrimonio-total').innerText = `R$ ${valorAtual.toFixed(2)}`;
+        }
+
+        function loadMetas(metas) {
+            const list = document.getElementById('metas-list');
+            if (metas.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma meta registrada.</p>';
+            } else {
+                list.innerHTML = metas.map(m => `
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <p class="font-bold text-gray-900">${m.nome}</p>
+                                <p class="text-xs text-gray-500">${m.descricao || 'Sem descrição'}</p>
+                            </div>
+                            <button onclick="deletarMeta(${m.id})" class="btn btn-danger">🗑️</button>
+                        </div>
+                        <div class="mb-3">
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Progresso</span>
+                                <span class="font-bold">${m.progresso.toFixed(1)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.min(m.progresso, 100)}%"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Valor Atual</p>
+                                <p class="font-bold">R$ ${m.valor_atual.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Valor Alvo</p>
+                                <p class="font-bold">R$ ${m.valor_alvo.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <input type="number" step="0.01" id="meta-valor-${m.id}" placeholder="Adicionar valor" class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm">
+                            <button onclick="adicionarValorMeta(${m.id})" class="btn btn-success text-sm">+</button>
+                        </div>
+                    </div>`).join('');
             }
         }
 
         function atualizarGraficos(transacoes, resumo) {
-            // Gráfico Receitas vs Despesas
             const ctxReceitas = document.getElementById('chartReceitasDespesas');
             if (!ctxReceitas) return;
             
@@ -244,7 +452,6 @@
                 }
             });
 
-            // Gráfico Gastos por Categoria
             const categorias = {};
             transacoes.filter(t => t.tipo === 'DESPESA').forEach(t => {
                 categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor;
@@ -261,11 +468,7 @@
                     labels: Object.keys(categorias),
                     datasets: [{
                         data: Object.values(categorias),
-                        backgroundColor: [
-                            '#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe',
-                            '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#330867',
-                            '#a8edea', '#fed6e3'
-                        ]
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#330867', '#a8edea', '#fed6e3']
                     }]
                 },
                 options: {
@@ -279,107 +482,174 @@
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-            
-            if (tab === 'transacoes') {
-                document.getElementById('tab-transacoes').classList.remove('hidden');
-                document.querySelectorAll('.tab-button')[0].classList.add('active');
-            } else {
-                document.getElementById('tab-graficos').classList.remove('hidden');
-                document.querySelectorAll('.tab-button')[1].classList.add('active');
-            }
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            event.target.classList.add('active');
         }
 
-        function openModal() {
-            document.getElementById('modal').classList.add('active');
+        function openModal(tipo) {
+            modalAtivo = tipo;
+            document.getElementById(`modal-${tipo}`).classList.add('active');
         }
 
         function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+            if (modalAtivo) {
+                document.getElementById(`modal-${modalAtivo}`).classList.remove('active');
+            }
             document.getElementById('input-categoria').value = '';
             document.getElementById('input-valor').value = '';
             document.getElementById('input-tipo').value = 'DESPESA';
-            document.getElementById('modal-message').textContent = '';
-            document.getElementById('modal-message').classList.remove('active', 'error', 'success');
-            document.getElementById('btn-salvar').disabled = false;
+            document.getElementById('input-inv-nome').value = '';
+            document.getElementById('input-inv-valor').value = '';
+            document.getElementById('input-meta-nome').value = '';
+            document.getElementById('input-meta-desc').value = '';
+            document.getElementById('input-meta-valor').value = '';
         }
 
         async function salvarTransacao() {
-            if (isSaving) return;
-            
             const categoria = document.getElementById('input-categoria').value;
             const valor = parseFloat(document.getElementById('input-valor').value);
             const tipo = document.getElementById('input-tipo').value;
-            const messageEl = document.getElementById('modal-message');
-            const btnSalvar = document.getElementById('btn-salvar');
 
             if (!categoria || isNaN(valor) || valor <= 0) {
-                messageEl.textContent = 'Preencha todos os campos corretamente!';
-                messageEl.classList.add('active', 'error');
+                alert('Preencha todos os campos corretamente!');
                 return;
             }
-
-            isSaving = true;
-            btnSalvar.disabled = true;
-            messageEl.textContent = 'Salvando...';
-            messageEl.classList.add('active');
 
             try {
                 const response = await fetch(`${API_URL}/api/transacoes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ categoria, valor, tipo, mes: currentMes })
+                    body: JSON.stringify({ categoria, valor, tipo, mes: currentMes, ano: currentAno })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Erro: ${response.status}`);
-                }
-
-                const data = await response.json();
-                messageEl.textContent = 'Transação salva com sucesso!';
-                messageEl.classList.remove('error');
-                messageEl.classList.add('success');
-                
-                setTimeout(() => {
-                    closeModal();
-                    loadData();
-                }, 1000);
+                if (!response.ok) throw new Error('Erro ao salvar');
+                closeModal();
+                loadData();
             } catch (e) {
-                console.error('Erro ao salvar:', e);
-                messageEl.textContent = 'Erro ao salvar. Tente novamente.';
-                messageEl.classList.remove('success');
-                messageEl.classList.add('error');
-                btnSalvar.disabled = false;
-            } finally {
-                isSaving = false;
+                alert('Erro ao salvar transação: ' + e.message);
             }
         }
 
         async function deletarTransacao(id) {
-            if (!confirm('Tem certeza que deseja deletar?')) return;
+            if (!confirm('Deletar transação?')) return;
             try {
-                const response = await fetch(`${API_URL}/api/transacoes/${id}`, { method: 'DELETE' });
-                if (!response.ok) {
-                    throw new Error(`Erro: ${response.status}`);
-                }
+                await fetch(`${API_URL}/api/transacoes/${id}`, { method: 'DELETE' });
                 loadData();
             } catch (e) {
-                console.error('Erro ao deletar:', e);
-                alert('Erro ao deletar transação');
+                alert('Erro ao deletar');
             }
         }
+
+        async function salvarInvestimento() {
+            const nome = document.getElementById('input-inv-nome').value;
+            const tipo = document.getElementById('input-inv-tipo').value;
+            const valor_inicial = parseFloat(document.getElementById('input-inv-valor').value);
+
+            if (!nome || isNaN(valor_inicial) || valor_inicial <= 0) {
+                alert('Preencha todos os campos corretamente!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/investimentos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, tipo, valor_inicial, ano: currentAno })
+                });
+
+                if (!response.ok) throw new Error('Erro ao salvar');
+                closeModal();
+                loadData();
+            } catch (e) {
+                alert('Erro ao salvar investimento: ' + e.message);
+            }
+        }
+
+        async function deletarInvestimento(id) {
+            if (!confirm('Deletar investimento?')) return;
+            try {
+                await fetch(`${API_URL}/api/investimentos/${id}`, { method: 'DELETE' });
+                loadData();
+            } catch (e) {
+                alert('Erro ao deletar');
+            }
+        }
+
+        async function salvarMeta() {
+            const nome = document.getElementById('input-meta-nome').value;
+            const descricao = document.getElementById('input-meta-desc').value;
+            const valor_alvo = parseFloat(document.getElementById('input-meta-valor').value);
+
+            if (!nome || isNaN(valor_alvo) || valor_alvo <= 0) {
+                alert('Preencha todos os campos corretamente!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/metas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, descricao, valor_alvo, ano: currentAno })
+                });
+
+                if (!response.ok) throw new Error('Erro ao salvar');
+                closeModal();
+                loadData();
+            } catch (e) {
+                alert('Erro ao salvar meta: ' + e.message);
+            }
+        }
+
+        async function deletarMeta(id) {
+            if (!confirm('Deletar meta?')) return;
+            try {
+                await fetch(`${API_URL}/api/metas/${id}`, { method: 'DELETE' });
+                loadData();
+            } catch (e) {
+                alert('Erro ao deletar');
+            }
+        }
+
+        async function adicionarValorMeta(id) {
+            const valor = parseFloat(document.getElementById(`meta-valor-${id}`).value);
+            if (isNaN(valor) || valor <= 0) {
+                alert('Valor inválido!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/metas/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ valor_atual: valor })
+                });
+
+                if (!response.ok) throw new Error('Erro ao atualizar');
+                loadData();
+            } catch (e) {
+                alert('Erro ao atualizar meta: ' + e.message);
+            }
+        }
+
+        document.getElementById('ano-selector').addEventListener('change', (e) => {
+            currentAno = parseInt(e.target.value);
+            loadData();
+        });
 
         document.getElementById('mes-selector').addEventListener('change', (e) => {
             currentMes = e.target.value;
             loadData();
         });
 
-        // Fechar modal ao clicar fora
-        document.getElementById('modal').addEventListener('click', (e) => {
-            if (e.target.id === 'modal') closeModal();
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
         });
 
-        // Inicializar
+        currentAno = new Date().getFullYear();
         currentMes = obterMesAtual();
+        document.getElementById('ano-selector').value = currentAno;
         document.getElementById('mes-selector').value = currentMes;
         loadData();
     </script>
