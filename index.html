@@ -63,10 +63,12 @@
                 </div>
                 <div class="header-controls">
                     <select id="ano-selector" class="bg-white text-gray-900 rounded-lg px-4 py-2 font-medium">
-                        <option value="2024">2024</option>
-                        <option value="2025" selected>2025</option>
-                        <option value="2026">2026</option>
+                        <option value="2026" selected>2026</option>
                         <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                        <option value="2031">2031</option>
                     </select>
                     <select id="mes-selector" class="bg-white text-gray-900 rounded-lg px-4 py-2 font-medium">
                         <option value="JANEIRO">Janeiro</option>
@@ -674,8 +676,8 @@
             });
         });
 
-        currentAno = new Date().getFullYear();
-        currentMes = 'AGOSTO';
+        currentAno = 2026;
+        currentMes = obterMesAtual();
         document.getElementById('ano-selector').value = currentAno;
         document.getElementById('mes-selector').value = currentMes;
         loadData();
