@@ -289,7 +289,7 @@
 
     <script>
         const API_URL = 'https://controle-financeiro-backend-wbo4.onrender.com';
-        let currentAno = 2025;
+        let currentAno = 2026;
         let currentMes = 'AGOSTO';
         let modalAtivo = null;
         let chartReceitasDespesas = null;
@@ -330,32 +330,35 @@
 
         async function loadData() {
             try {
-                const [resumoRes, transacoesRes, investimentosRes, metasRes] = await Promise.all([
-                    fetch(`${API_URL}/api/resumo/${currentAno}/${currentMes}`),
-                    fetch(`${API_URL}/api/transacoes?ano=${currentAno}&mes=${currentMes}`),
-                    fetch(`${API_URL}/api/investimentos?ano=${currentAno}`),
-                    fetch(`${API_URL}/api/metas?ano=${currentAno}`)
-                ]);
+                const resumoRes = await fetch(`${API_URL}/api/resumo/${currentAno}/${currentMes}`);
+                const transacoesRes = await fetch(`${API_URL}/api/transacoes?ano=${currentAno}&mes=${currentMes}`);
+                const investimentosRes = await fetch(`${API_URL}/api/investimentos?ano=${currentAno}`);
+                const metasRes = await fetch(`${API_URL}/api/metas?ano=${currentAno}`);
                 
+                let resumo = { receitas: 0, despesas: 0, saldo: 0 };
+                let transacoes = [];
+                let investimentos = [];
+                let metas = [];
+
                 if (resumoRes.ok) {
-                    const resumo = await resumoRes.json();
+                    resumo = await resumoRes.json();
                     document.getElementById('resumo-receitas').innerText = `R$ ${resumo.receitas.toFixed(2)}`;
                     document.getElementById('resumo-despesas').innerText = `R$ ${resumo.despesas.toFixed(2)}`;
                     document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
                 }
 
                 if (transacoesRes.ok) {
-                    const transacoes = await transacoesRes.json();
+                    transacoes = await transacoesRes.json();
                     renderTransacoes(transacoes, resumo);
                 }
 
                 if (investimentosRes.ok) {
-                    const investimentos = await investimentosRes.json();
+                    investimentos = await investimentosRes.json();
                     renderInvestimentos(investimentos);
                 }
 
                 if (metasRes.ok) {
-                    const metas = await metasRes.json();
+                    metas = await metasRes.json();
                     renderMetas(metas);
                 }
             } catch (e) {
@@ -677,7 +680,7 @@
         });
 
         currentAno = 2026;
-        currentMes = obterMesAtual();
+        currentMes = 'AGOSTO';
         document.getElementById('ano-selector').value = currentAno;
         document.getElementById('mes-selector').value = currentMes;
         loadData();
