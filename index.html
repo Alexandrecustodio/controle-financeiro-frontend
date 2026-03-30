@@ -15,6 +15,7 @@
         .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; }
         .btn-primary { background-color: #667eea; color: white; }
         .btn-primary:hover { background-color: #5568d3; }
+        .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-danger { background-color: #ef4444; color: white; padding: 6px 10px; font-size: 12px; }
         .btn-danger:hover { background-color: #dc2626; }
         .badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
@@ -30,6 +31,10 @@
         .modal.active { display: flex; }
         .modal-content { background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; }
         .chart-container { position: relative; height: 300px; margin-bottom: 20px; }
+        .loading { display: none; color: #667eea; font-weight: 600; margin-top: 10px; }
+        .loading.active { display: block; }
+        .error { color: #ef4444; font-size: 12px; margin-top: 5px; }
+        .success { color: #10b981; font-size: 12px; margin-top: 5px; }
     </style>
 </head>
 <body class="p-4">
@@ -122,28 +127,35 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
                     <select id="input-categoria" class="w-full border border-gray-300 rounded-lg px-3 py-2">
                         <option value="">Selecione uma categoria</option>
-                        <option value="Tributos Igreja">Tributos Igreja</option>
-                        <option value="Aluguel">Aluguel</option>
-                        <option value="Plano de Saúde">Plano de Saúde</option>
-                        <option value="Contas">Contas</option>
-                        <option value="Cartão de Crédito">Cartão de Crédito</option>
-                        <option value="Pagamento Amor">Pagamento Amor</option>
-                        <option value="Transporte">Transporte</option>
-                        <option value="Empréstimo">Empréstimo</option>
-                        <option value="Viagens">Viagens</option>
-                        <option value="Outros Gastos">Outros Gastos</option>
-                        <option value="Alimentação">Alimentação</option>
-                        <option value="Investimentos">Investimentos</option>
-                        <option value="Carro">Carro</option>
+                        <optgroup label="Receitas">
+                            <option value="Salário">Salário</option>
+                            <option value="Bonificação">Bonificação</option>
+                        </optgroup>
+                        <optgroup label="Despesas">
+                            <option value="Tributos Igreja">Tributos Igreja</option>
+                            <option value="Aluguel">Aluguel</option>
+                            <option value="Plano de Saúde">Plano de Saúde</option>
+                            <option value="Contas">Contas</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            <option value="Pagamento Amor">Pagamento Amor</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Empréstimo">Empréstimo</option>
+                            <option value="Viagens">Viagens</option>
+                            <option value="Outros Gastos">Outros Gastos</option>
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Investimentos">Investimentos</option>
+                            <option value="Carro">Carro</option>
+                        </optgroup>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
                     <input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
                 </div>
+                <div id="modal-message" class="loading"></div>
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
-                    <button onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button>
+                    <button id="btn-salvar" onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button>
                 </div>
             </div>
         </div>
@@ -154,6 +166,7 @@
         let currentMes = 'AGOSTO';
         let chartReceitasDespesas = null;
         let chartCategorias = null;
+        let isSaving = false;
 
         function obterMesAtual() {
             const meses = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
@@ -166,6 +179,11 @@
                     fetch(`${API_URL}/api/resumo/${currentMes}`),
                     fetch(`${API_URL}/api/transacoes?mes=${currentMes}`)
                 ]);
+                
+                if (!resumoRes.ok || !transacoesRes.ok) {
+                    throw new Error('Erro ao carregar dados do servidor');
+                }
+                
                 const resumo = await resumoRes.json();
                 const transacoes = await transacoesRes.json();
 
@@ -174,32 +192,40 @@
                 document.getElementById('resumo-saldo').innerText = `R$ ${resumo.saldo.toFixed(2)}`;
 
                 const list = document.getElementById('transacoes-list');
-                list.innerHTML = transacoes.map(t => `
-                    <div class="card flex justify-between items-center">
-                        <div>
-                            <p class="font-bold text-gray-900">${t.categoria}</p>
-                            <p class="text-xs text-gray-500">${t.status}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
-                            <div class="flex gap-2 justify-end mt-1">
-                                <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
-                                <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
+                if (transacoes.length === 0) {
+                    list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma transação registrada neste mês.</p>';
+                } else {
+                    list.innerHTML = transacoes.map(t => `
+                        <div class="card flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-900">${t.categoria}</p>
+                                <p class="text-xs text-gray-500">${t.status || 'Sem data'}</p>
                             </div>
-                        </div>
-                    </div>`).join('');
+                            <div class="text-right">
+                                <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
+                                <div class="flex gap-2 justify-end mt-1">
+                                    <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
+                                    <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
+                                </div>
+                            </div>
+                        </div>`).join('');
+                }
 
                 atualizarGraficos(transacoes, resumo);
             } catch (e) {
                 console.error('Erro ao carregar dados:', e);
+                document.getElementById('transacoes-list').innerHTML = '<p class="text-red-500 text-center py-8">Erro ao carregar dados. Verifique sua conexão.</p>';
             }
         }
 
         function atualizarGraficos(transacoes, resumo) {
             // Gráfico Receitas vs Despesas
-            const ctxReceitas = document.getElementById('chartReceitasDespesas').getContext('2d');
+            const ctxReceitas = document.getElementById('chartReceitasDespesas');
+            if (!ctxReceitas) return;
+            
+            const contextReceitas = ctxReceitas.getContext('2d');
             if (chartReceitasDespesas) chartReceitasDespesas.destroy();
-            chartReceitasDespesas = new Chart(ctxReceitas, {
+            chartReceitasDespesas = new Chart(contextReceitas, {
                 type: 'bar',
                 data: {
                     labels: ['Receitas', 'Despesas'],
@@ -224,9 +250,12 @@
                 categorias[t.categoria] = (categorias[t.categoria] || 0) + t.valor;
             });
 
-            const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
+            const ctxCategorias = document.getElementById('chartCategorias');
+            if (!ctxCategorias) return;
+            
+            const contextCategorias = ctxCategorias.getContext('2d');
             if (chartCategorias) chartCategorias.destroy();
-            chartCategorias = new Chart(ctxCategorias, {
+            chartCategorias = new Chart(contextCategorias, {
                 type: 'doughnut',
                 data: {
                     labels: Object.keys(categorias),
@@ -269,36 +298,69 @@
             document.getElementById('input-categoria').value = '';
             document.getElementById('input-valor').value = '';
             document.getElementById('input-tipo').value = 'DESPESA';
+            document.getElementById('modal-message').textContent = '';
+            document.getElementById('modal-message').classList.remove('active', 'error', 'success');
+            document.getElementById('btn-salvar').disabled = false;
         }
 
         async function salvarTransacao() {
+            if (isSaving) return;
+            
             const categoria = document.getElementById('input-categoria').value;
             const valor = parseFloat(document.getElementById('input-valor').value);
             const tipo = document.getElementById('input-tipo').value;
+            const messageEl = document.getElementById('modal-message');
+            const btnSalvar = document.getElementById('btn-salvar');
 
             if (!categoria || isNaN(valor) || valor <= 0) {
-                alert('Preencha todos os campos corretamente!');
+                messageEl.textContent = 'Preencha todos os campos corretamente!';
+                messageEl.classList.add('active', 'error');
                 return;
             }
 
+            isSaving = true;
+            btnSalvar.disabled = true;
+            messageEl.textContent = 'Salvando...';
+            messageEl.classList.add('active');
+
             try {
-                await fetch(`${API_URL}/api/transacoes`, {
+                const response = await fetch(`${API_URL}/api/transacoes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ categoria, valor, tipo, mes: currentMes })
                 });
-                closeModal();
-                loadData();
+
+                if (!response.ok) {
+                    throw new Error(`Erro: ${response.status}`);
+                }
+
+                const data = await response.json();
+                messageEl.textContent = 'Transação salva com sucesso!';
+                messageEl.classList.remove('error');
+                messageEl.classList.add('success');
+                
+                setTimeout(() => {
+                    closeModal();
+                    loadData();
+                }, 1000);
             } catch (e) {
                 console.error('Erro ao salvar:', e);
-                alert('Erro ao salvar transação');
+                messageEl.textContent = 'Erro ao salvar. Tente novamente.';
+                messageEl.classList.remove('success');
+                messageEl.classList.add('error');
+                btnSalvar.disabled = false;
+            } finally {
+                isSaving = false;
             }
         }
 
         async function deletarTransacao(id) {
             if (!confirm('Tem certeza que deseja deletar?')) return;
             try {
-                await fetch(`${API_URL}/api/transacoes/${id}`, { method: 'DELETE' });
+                const response = await fetch(`${API_URL}/api/transacoes/${id}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    throw new Error(`Erro: ${response.status}`);
+                }
                 loadData();
             } catch (e) {
                 console.error('Erro ao deletar:', e);
