@@ -3,45 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Orçamento - Controle Financeiro Completo</title>
+    <title>Meu Orçamento - Controle Financeiro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .container { max-width: 1400px; margin: 0 auto; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; }
+        .container { max-width: 1200px; margin: 0 auto; }
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 20px; }
-        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; }
+        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; transition: all 0.2s; cursor: pointer; border: none; font-size: 14px; }
         .btn-primary { background-color: #667eea; color: white; }
         .btn-primary:hover { background-color: #5568d3; }
         .btn-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .btn-danger { background-color: #ef4444; color: white; padding: 6px 10px; font-size: 12px; }
+        .btn-danger { background-color: #ef4444; color: white; padding: 6px 10px; font-size: 12px; border-radius: 6px; }
         .btn-danger:hover { background-color: #dc2626; }
         .btn-success { background-color: #10b981; color: white; }
         .btn-success:hover { background-color: #059669; }
-        .badge { padding: 4px 8px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
-        .badge-receita { background-color: #dcfce7; color: #166534; }
-        .badge-despesa { background-color: #fee2e2; color: #991b1b; }
-        .stat-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stat-value { font-size: 24px; font-weight: 700; margin: 10px 0; }
-        .stat-label { font-size: 12px; color: #6b7280; text-transform: uppercase; }
-        .tab-button { padding: 10px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #9ca3af; transition: all 0.2s; }
-        .tab-button.active { color: #667eea; border-bottom: 3px solid #667eea; }
-        select, input { font-family: 'Inter', sans-serif; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 28px; font-weight: 700; margin: 10px 0; }
+        .stat-label { font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: 600; }
+        .tab-button { padding: 12px 20px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #9ca3af; transition: all 0.2s; border-bottom: 3px solid transparent; }
+        .tab-button.active { color: #667eea; border-bottom-color: #667eea; }
+        select, input { font-family: 'Inter', sans-serif; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
+        select:focus, input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 50; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background: white; border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
         .chart-container { position: relative; height: 300px; margin-bottom: 20px; }
-        .progress-bar { background-color: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden; }
-        .progress-fill { background-color: #667eea; height: 100%; transition: width 0.3s; }
-        .header-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+        .transacao-item { background: #f9fafb; border-radius: 8px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .transacao-info { flex: 1; }
+        .transacao-categoria { font-weight: 600; color: #1f2937; }
+        .transacao-status { font-size: 12px; color: #6b7280; margin-top: 4px; }
+        .transacao-valor { font-weight: 700; font-size: 16px; }
+        .receita { color: #10b981; }
+        .despesa { color: #ef4444; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        .badge-receita { background-color: #dcfce7; color: #166534; }
+        .badge-despesa { background-color: #fee2e2; color: #991b1b; }
+        .header-controls { display: flex; gap: 12px; flex-wrap: wrap; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .message { padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+        .message.success { background-color: #dcfce7; color: #166534; }
+        .message.error { background-color: #fee2e2; color: #991b1b; }
+        .message.loading { background-color: #dbeafe; color: #1e40af; }
     </style>
 </head>
-<body class="p-4">
+<body>
     <div class="container">
         <!-- Header -->
-        <div class="card-header mb-6">
+        <div class="card-header">
             <div class="flex justify-between items-center flex-wrap gap-4">
                 <div>
                     <h1 class="text-3xl font-bold">Meu Orçamento</h1>
@@ -62,7 +75,7 @@
                         <option value="MAIO">Maio</option>
                         <option value="JUNHO">Junho</option>
                         <option value="JULHO">Julho</option>
-                        <option value="AGOSTO">Agosto</option>
+                        <option value="AGOSTO" selected>Agosto</option>
                         <option value="SETEMBRO">Setembro</option>
                         <option value="OUTUBRO">Outubro</option>
                         <option value="NOVEMBRO">Novembro</option>
@@ -93,7 +106,7 @@
         </div>
 
         <!-- Tabs -->
-        <div class="card mb-6">
+        <div class="card">
             <div class="flex border-b overflow-x-auto">
                 <button class="tab-button active" onclick="switchTab('transacoes')">Transações</button>
                 <button class="tab-button" onclick="switchTab('investimentos')">Investimentos</button>
@@ -102,18 +115,18 @@
             </div>
 
             <!-- Tab: Transações -->
-            <div id="tab-transacoes" class="tab-content">
+            <div id="tab-transacoes" class="tab-content active">
                 <div class="mt-6">
                     <button onclick="openModal('transacao')" class="btn btn-primary w-full mb-6">+ Adicionar Transação</button>
-                    <div id="transacoes-list" class="space-y-3"></div>
+                    <div id="transacoes-list"></div>
                 </div>
             </div>
 
             <!-- Tab: Investimentos -->
-            <div id="tab-investimentos" class="tab-content hidden">
+            <div id="tab-investimentos" class="tab-content">
                 <div class="mt-6">
                     <button onclick="openModal('investimento')" class="btn btn-primary w-full mb-6">+ Novo Investimento</button>
-                    <div id="investimentos-list" class="space-y-3"></div>
+                    <div id="investimentos-list"></div>
                     <div class="mt-8 p-4 bg-gray-50 rounded-lg">
                         <h3 class="font-bold mb-4">Resumo de Investimentos</h3>
                         <div class="grid grid-cols-2 gap-4">
@@ -139,15 +152,15 @@
             </div>
 
             <!-- Tab: Metas -->
-            <div id="tab-metas" class="tab-content hidden">
+            <div id="tab-metas" class="tab-content">
                 <div class="mt-6">
                     <button onclick="openModal('meta')" class="btn btn-primary w-full mb-6">+ Nova Meta</button>
-                    <div id="metas-list" class="space-y-4"></div>
+                    <div id="metas-list"></div>
                 </div>
             </div>
 
             <!-- Tab: Gráficos -->
-            <div id="tab-graficos" class="tab-content hidden">
+            <div id="tab-graficos" class="tab-content">
                 <div class="mt-6">
                     <h3 class="text-lg font-bold mb-4">Receitas vs Despesas</h3>
                     <div class="chart-container">
@@ -167,17 +180,18 @@
     <div id="modal-transacao" class="modal">
         <div class="modal-content">
             <h2 class="text-2xl font-bold mb-6">Nova Transação</h2>
+            <div id="modal-transacao-message"></div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                    <select id="input-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <select id="input-tipo" class="w-full">
                         <option value="DESPESA">Despesa</option>
                         <option value="RECEITA">Receita</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
-                    <select id="input-categoria" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <select id="input-categoria" class="w-full">
                         <option value="">Selecione uma categoria</option>
                         <optgroup label="Receitas">
                             <option value="Salário">Salário</option>
@@ -202,12 +216,11 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Valor (R$)</label>
-                    <input id="input-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
+                    <input id="input-valor" type="number" step="0.01" placeholder="0,00">
                 </div>
-                <div id="modal-message" class="text-sm"></div>
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
-                    <button id="btn-salvar" onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button>
+                    <button id="btn-salvar-transacao" onclick="salvarTransacao()" class="btn btn-primary flex-1">Salvar</button>
                 </div>
             </div>
         </div>
@@ -217,14 +230,15 @@
     <div id="modal-investimento" class="modal">
         <div class="modal-content">
             <h2 class="text-2xl font-bold mb-6">Novo Investimento</h2>
+            <div id="modal-investimento-message"></div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Investimento</label>
-                    <input id="input-inv-nome" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Ex: ITUB4, Fundo XYZ">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
+                    <input id="input-inv-nome" type="text" placeholder="Ex: ITUB4, Fundo XYZ">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                    <select id="input-inv-tipo" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <select id="input-inv-tipo">
                         <option value="Ação">Ação</option>
                         <option value="Fundo">Fundo</option>
                         <option value="Cripto">Cripto</option>
@@ -234,9 +248,8 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Valor Inicial (R$)</label>
-                    <input id="input-inv-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
+                    <input id="input-inv-valor" type="number" step="0.01" placeholder="0,00">
                 </div>
-                <div id="modal-message-inv" class="text-sm"></div>
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
                     <button onclick="salvarInvestimento()" class="btn btn-primary flex-1">Salvar</button>
@@ -249,20 +262,20 @@
     <div id="modal-meta" class="modal">
         <div class="modal-content">
             <h2 class="text-2xl font-bold mb-6">Nova Meta</h2>
+            <div id="modal-meta-message"></div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Meta</label>
-                    <input id="input-meta-nome" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Ex: Viagem, Carro">
+                    <input id="input-meta-nome" type="text" placeholder="Ex: Viagem, Carro">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
-                    <input id="input-meta-desc" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="Opcional">
+                    <input id="input-meta-desc" type="text" placeholder="Opcional">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Valor Alvo (R$)</label>
-                    <input id="input-meta-valor" type="number" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="0,00">
+                    <input id="input-meta-valor" type="number" step="0.01" placeholder="0,00">
                 </div>
-                <div id="modal-message-meta" class="text-sm"></div>
                 <div class="flex gap-3 mt-6">
                     <button onclick="closeModal()" class="btn bg-gray-100 text-gray-700 flex-1">Cancelar</button>
                     <button onclick="salvarMeta()" class="btn btn-primary flex-1">Salvar</button>
@@ -273,15 +286,43 @@
 
     <script>
         const API_URL = 'https://controle-financeiro-backend-wbo4.onrender.com';
-        let currentAno = new Date().getFullYear();
+        let currentAno = 2025;
         let currentMes = 'AGOSTO';
+        let modalAtivo = null;
         let chartReceitasDespesas = null;
         let chartCategorias = null;
-        let modalAtivo = null;
 
-        function obterMesAtual() {
-            const meses = ['JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
-            return meses[new Date().getMonth()];
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => { el.innerHTML = ''; }, 3000);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function openModal(tipo) {
+            modalAtivo = tipo;
+            document.getElementById(`modal-${tipo}`).classList.add('active');
+        }
+
+        function closeModal() {
+            if (modalAtivo) {
+                document.getElementById(`modal-${modalAtivo}`).classList.remove('active');
+            }
+            document.getElementById('input-categoria').value = '';
+            document.getElementById('input-valor').value = '';
+            document.getElementById('input-tipo').value = 'DESPESA';
+            document.getElementById('input-inv-nome').value = '';
+            document.getElementById('input-inv-valor').value = '';
+            document.getElementById('input-meta-nome').value = '';
+            document.getElementById('input-meta-desc').value = '';
+            document.getElementById('input-meta-valor').value = '';
         }
 
         async function loadData() {
@@ -302,43 +343,47 @@
 
                 if (transacoesRes.ok) {
                     const transacoes = await transacoesRes.json();
-                    const list = document.getElementById('transacoes-list');
-                    if (transacoes.length === 0) {
-                        list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma transação registrada.</p>';
-                    } else {
-                        list.innerHTML = transacoes.map(t => `
-                            <div class="card flex justify-between items-center">
-                                <div>
-                                    <p class="font-bold text-gray-900">${t.categoria}</p>
-                                    <p class="text-xs text-gray-500">${t.status}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-bold ${t.tipo === 'RECEITA' ? 'text-green-600' : 'text-red-600'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
-                                    <div class="flex gap-2 justify-end mt-1">
-                                        <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
-                                        <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
-                                    </div>
-                                </div>
-                            </div>`).join('');
-                    }
-                    atualizarGraficos(transacoes, resumo);
+                    renderTransacoes(transacoes, resumo);
                 }
 
                 if (investimentosRes.ok) {
                     const investimentos = await investimentosRes.json();
-                    loadInvestimentos(investimentos);
+                    renderInvestimentos(investimentos);
                 }
 
                 if (metasRes.ok) {
                     const metas = await metasRes.json();
-                    loadMetas(metas);
+                    renderMetas(metas);
                 }
             } catch (e) {
                 console.error('Erro ao carregar dados:', e);
             }
         }
 
-        function loadInvestimentos(investimentos) {
+        function renderTransacoes(transacoes, resumo) {
+            const list = document.getElementById('transacoes-list');
+            if (transacoes.length === 0) {
+                list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma transação registrada.</p>';
+            } else {
+                list.innerHTML = transacoes.map(t => `
+                    <div class="transacao-item">
+                        <div class="transacao-info">
+                            <p class="transacao-categoria">${t.categoria}</p>
+                            <p class="transacao-status">${t.status}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="transacao-valor ${t.tipo === 'RECEITA' ? 'receita' : 'despesa'}">${t.tipo === 'RECEITA' ? '+' : '-'} R$ ${t.valor.toFixed(2)}</p>
+                            <div class="flex gap-2 justify-end mt-2">
+                                <span class="badge ${t.tipo === 'RECEITA' ? 'badge-receita' : 'badge-despesa'}">${t.tipo}</span>
+                                <button onclick="deletarTransacao(${t.id})" class="btn btn-danger">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+            atualizarGraficos(transacoes, resumo);
+        }
+
+        function renderInvestimentos(investimentos) {
             const list = document.getElementById('investimentos-list');
             if (investimentos.length === 0) {
                 list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhum investimento registrado.</p>';
@@ -385,7 +430,7 @@
             document.getElementById('patrimonio-total').innerText = `R$ ${valorAtual.toFixed(2)}`;
         }
 
-        function loadMetas(metas) {
+        function renderMetas(metas) {
             const list = document.getElementById('metas-list');
             if (metas.length === 0) {
                 list.innerHTML = '<p class="text-gray-500 text-center py-8">Nenhuma meta registrada.</p>';
@@ -404,11 +449,11 @@
                                 <span>Progresso</span>
                                 <span class="font-bold">${m.progresso.toFixed(1)}%</span>
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${Math.min(m.progresso, 100)}%"></div>
+                            <div class="bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div class="bg-blue-600 h-full" style="width: ${Math.min(m.progresso, 100)}%"></div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="grid grid-cols-2 gap-4 text-sm mb-3">
                             <div>
                                 <p class="text-gray-600">Valor Atual</p>
                                 <p class="font-bold">R$ ${m.valor_atual.toFixed(2)}</p>
@@ -418,9 +463,9 @@
                                 <p class="font-bold">R$ ${m.valor_alvo.toFixed(2)}</p>
                             </div>
                         </div>
-                        <div class="mt-3 flex gap-2">
-                            <input type="number" step="0.01" id="meta-valor-${m.id}" placeholder="Adicionar valor" class="flex-1 border border-gray-300 rounded px-2 py-1 text-sm">
-                            <button onclick="adicionarValorMeta(${m.id})" class="btn btn-success text-sm">+</button>
+                        <div class="flex gap-2">
+                            <input type="number" step="0.01" id="meta-valor-${m.id}" placeholder="Adicionar valor" class="flex-1">
+                            <button onclick="adicionarValorMeta(${m.id})" class="btn btn-success">+</button>
                         </div>
                     </div>`).join('');
             }
@@ -478,43 +523,21 @@
             });
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
-            event.target.classList.add('active');
-        }
-
-        function openModal(tipo) {
-            modalAtivo = tipo;
-            document.getElementById(`modal-${tipo}`).classList.add('active');
-        }
-
-        function closeModal() {
-            if (modalAtivo) {
-                document.getElementById(`modal-${modalAtivo}`).classList.remove('active');
-            }
-            document.getElementById('input-categoria').value = '';
-            document.getElementById('input-valor').value = '';
-            document.getElementById('input-tipo').value = 'DESPESA';
-            document.getElementById('input-inv-nome').value = '';
-            document.getElementById('input-inv-valor').value = '';
-            document.getElementById('input-meta-nome').value = '';
-            document.getElementById('input-meta-desc').value = '';
-            document.getElementById('input-meta-valor').value = '';
-        }
-
         async function salvarTransacao() {
             const categoria = document.getElementById('input-categoria').value;
             const valor = parseFloat(document.getElementById('input-valor').value);
             const tipo = document.getElementById('input-tipo').value;
 
             if (!categoria || isNaN(valor) || valor <= 0) {
-                alert('Preencha todos os campos corretamente!');
+                showMessage('modal-transacao-message', 'Preencha todos os campos corretamente!', 'error');
                 return;
             }
 
             try {
+                const btn = document.getElementById('btn-salvar-transacao');
+                btn.disabled = true;
+                btn.innerText = 'Salvando...';
+
                 const response = await fetch(`${API_URL}/api/transacoes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -524,8 +547,12 @@
                 if (!response.ok) throw new Error('Erro ao salvar');
                 closeModal();
                 loadData();
+                btn.disabled = false;
+                btn.innerText = 'Salvar';
             } catch (e) {
-                alert('Erro ao salvar transação: ' + e.message);
+                showMessage('modal-transacao-message', 'Erro ao salvar: ' + e.message, 'error');
+                document.getElementById('btn-salvar-transacao').disabled = false;
+                document.getElementById('btn-salvar-transacao').innerText = 'Salvar';
             }
         }
 
@@ -545,7 +572,7 @@
             const valor_inicial = parseFloat(document.getElementById('input-inv-valor').value);
 
             if (!nome || isNaN(valor_inicial) || valor_inicial <= 0) {
-                alert('Preencha todos os campos corretamente!');
+                showMessage('modal-investimento-message', 'Preencha todos os campos corretamente!', 'error');
                 return;
             }
 
@@ -560,7 +587,7 @@
                 closeModal();
                 loadData();
             } catch (e) {
-                alert('Erro ao salvar investimento: ' + e.message);
+                showMessage('modal-investimento-message', 'Erro ao salvar: ' + e.message, 'error');
             }
         }
 
@@ -580,7 +607,7 @@
             const valor_alvo = parseFloat(document.getElementById('input-meta-valor').value);
 
             if (!nome || isNaN(valor_alvo) || valor_alvo <= 0) {
-                alert('Preencha todos os campos corretamente!');
+                showMessage('modal-meta-message', 'Preencha todos os campos corretamente!', 'error');
                 return;
             }
 
@@ -595,7 +622,7 @@
                 closeModal();
                 loadData();
             } catch (e) {
-                alert('Erro ao salvar meta: ' + e.message);
+                showMessage('modal-meta-message', 'Erro ao salvar: ' + e.message, 'error');
             }
         }
 
@@ -647,7 +674,7 @@
         });
 
         currentAno = new Date().getFullYear();
-        currentMes = obterMesAtual();
+        currentMes = 'AGOSTO';
         document.getElementById('ano-selector').value = currentAno;
         document.getElementById('mes-selector').value = currentMes;
         loadData();
