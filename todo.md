@@ -113,3 +113,7 @@
 - [x] Create initial checkpoint
 - [x] Prepare for publishing
 - [x] Generate QR code for Expo Go testing
+- [x] Configure EAS for iOS build
+- [ ] Login to Expo/EAS account
+- [ ] Generate iOS IPA build
+- [ ] Submit to App Store
