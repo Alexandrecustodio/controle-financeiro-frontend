@@ -14,17 +14,5 @@
     "production": {
       "distribution": "store"
     }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "appleId": "",
-        "appleTeamId": "",
-        "ascAppId": ""
-      },
-      "android": {
-        "serviceAccount": ""
-      }
-    }
   }
 }
