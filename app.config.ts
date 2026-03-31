@@ -44,6 +44,11 @@ const config: ExpoConfig = {
   version: "1.0.0",
   runtimeVersion: "1.0.0",
   orientation: "portrait",
+  extra: {
+    eas: {
+      projectId: "2678d4c1-e0cd-410a-8c51-0b93ff4be903"
+    }
+  },
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
