@@ -13,6 +13,12 @@ export interface Transaction {
   amount: number;
   description: string;
   month: string; // YYYY-MM format for proper month grouping
+  // Installment fields
+  isInstallment?: boolean;
+  installmentCount?: number; // Total number of installments
+  installmentNumber?: number; // Current installment number (1, 2, 3...)
+  installmentGroupId?: string; // ID to group related installments
+  originalAmount?: number; // Original amount before division
 }
 
 export interface Goal {

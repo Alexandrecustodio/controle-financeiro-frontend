@@ -9,6 +9,8 @@ interface FinanceContextType {
   deleteTransaction: (id: string) => Promise<void>;
   getTransactionsByMonth: (month: string) => Transaction[];
   getSummary: (month: string) => FinanceSummary;
+  deleteInstallmentGroup: (groupId: string) => Promise<void>;
+  getInstallmentGroup: (groupId: string) => Transaction[];
   isLoading: boolean;
   error: string | null;
 }
@@ -146,6 +148,23 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     };
   }, [transactions, getTransactionsByMonth]);
 
+  const deleteInstallmentGroup = useCallback(async (groupId: string) => {
+    try {
+      setError(null);
+      setTransactions((prev) =>
+        prev.filter((t) => t.installmentGroupId !== groupId)
+      );
+    } catch (err) {
+      console.error('Failed to delete installment group:', err);
+      setError('Falha ao deletar grupo de parcelas');
+      throw err;
+    }
+  }, []);
+
+  const getInstallmentGroup = useCallback((groupId: string): Transaction[] => {
+    return transactions.filter((t) => t.installmentGroupId === groupId);
+  }, [transactions]);
+
   const value = useMemo(
     () => ({
       transactions,
@@ -154,10 +173,12 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       deleteTransaction,
       getTransactionsByMonth,
       getSummary,
+      deleteInstallmentGroup,
+      getInstallmentGroup,
       isLoading,
       error,
     }),
-    [transactions, addTransaction, updateTransaction, deleteTransaction, getTransactionsByMonth, getSummary, isLoading, error]
+    [transactions, addTransaction, updateTransaction, deleteTransaction, getTransactionsByMonth, getSummary, deleteInstallmentGroup, getInstallmentGroup, isLoading, error]
   );
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;
